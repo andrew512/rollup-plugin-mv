@@ -1,5 +1,5 @@
 import { Plugin } from "rollup";
-import { move } from "fs-extra";
+import { move, copy } from "fs-extra";
 
 export interface Files {
   /**
@@ -15,6 +15,11 @@ export interface Files {
    * @default false
    */
   overwrite?: boolean;
+  /**
+   * Whether to copy instead of move
+   * @default false
+   */
+  copy?: boolean;
 }
 
 export interface PluginOptions {
@@ -43,9 +48,15 @@ const plugin = (
       if (called && once) return;
       called = true;
       for (const target of targets) {
-        await move(target.src, target.dest, {
-          overwrite: target.overwrite ?? overwrite,
-        });
+        if (!target.copy) {
+          await move(target.src, target.dest, {
+            overwrite: target.overwrite ?? overwrite,
+          });
+        } else {
+          await copy(target.src, target.dest, {
+            overwrite: target.overwrite ?? overwrite,
+          });
+        }
       }
     },
   };
